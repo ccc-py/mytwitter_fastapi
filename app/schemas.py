@@ -61,3 +61,20 @@ class FriendRequestCreate(BaseModel):
 
 class FriendResponse(BaseModel):
     message: str
+
+class WallMessageBase(BaseModel):
+    content: str
+
+class WallMessageCreate(WallMessageBase):
+    wall_owner_id: int
+
+class WallMessage(WallMessageBase):
+    id: int
+    created_at: datetime
+    author_id: int
+    wall_owner_id: int
+    author: UserPublic
+    wall_owner: UserPublic
+
+    class Config:
+        from_attributes = True

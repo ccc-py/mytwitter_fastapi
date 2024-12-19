@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Table, Text
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
@@ -32,6 +32,13 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     tweets = relationship("Tweet", back_populates="author")
+    wall_messages = relationship("WallMessage", 
+                               foreign_keys="[WallMessage.wall_owner_id]",
+                               back_populates="wall_owner")
+    messages_written = relationship("WallMessage", 
+                                  foreign_keys="[WallMessage.author_id]",
+                                  back_populates="author")
+    
     followers = relationship(
         "User",
         secondary="followers",
@@ -40,21 +47,19 @@ class User(Base):
         backref="following"
     )
     
-    # Add friends relationship
     friends = relationship(
         "User",
         secondary=friends,
-        primaryjoin=id==friends.c.user_id,
-        secondaryjoin=id==friends.c.friend_id,
+        primaryjoin="User.id==friends.c.user_id",
+        secondaryjoin="User.id==friends.c.friend_id",
         backref="friended_by"
     )
     
-    # Add friend requests relationship
     sent_friend_requests = relationship(
         "User",
         secondary=friend_requests,
-        primaryjoin=id==friend_requests.c.sender_id,
-        secondaryjoin=id==friend_requests.c.receiver_id,
+        primaryjoin="User.id==friend_requests.c.sender_id",
+        secondaryjoin="User.id==friend_requests.c.receiver_id",
         backref="received_friend_requests"
     )
 
@@ -67,6 +72,18 @@ class Tweet(Base):
     author_id = Column(Integer, ForeignKey("users.id"))
     
     author = relationship("User", back_populates="tweets")
+
+class WallMessage(Base):
+    __tablename__ = "wall_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    author_id = Column(Integer, ForeignKey("users.id"))
+    wall_owner_id = Column(Integer, ForeignKey("users.id"))
+    
+    author = relationship("User", foreign_keys=[author_id], back_populates="messages_written")
+    wall_owner = relationship("User", foreign_keys=[wall_owner_id], back_populates="wall_messages")
 
 # Association table for followers
 followers = Table(

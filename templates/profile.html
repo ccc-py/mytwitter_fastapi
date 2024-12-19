@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Profile - Twitter Clone</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/styles.css" rel="stylesheet">
+</head>
+<body onload="initProfile();">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">Twitter Clone</a>
+            <div class="navbar-text" id="navbarUser">
+                <!-- 登入狀態會動態更新這裡 -->
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row">
+            <!-- User Profile -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h2 class="card-title" id="profileUsername"></h2>
+                        <p class="text-muted" id="profileJoinDate"></p>
+                        <div id="friendActionArea"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wall Messages -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Wall Messages</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Message Form -->
+                        <div class="mb-4" id="messageForm">
+                            <!-- 登入後才顯示留言框 -->
+                        </div>
+
+                        <!-- Messages List -->
+                        <div id="wallMessages"></div>
+                    </div>
+                </div>
+
+                <!-- User's Tweets -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Tweets</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="userTweets"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+    <script>
+        // 初始化個人頁面
+        function initProfile() {
+            updateNavbar();
+            updateMessageForm();
+            loadUserProfile();
+            // 如果已登入，則加載額外功能
+            if (token) {
+                fetchCurrentUser();
+                loadFriendRequests();
+                loadFriends();
+            }
+        }
+        
+        // 更新導航欄
+        function updateNavbar() {
+            const navbarUser = document.getElementById('navbarUser');
+            if (token) {
+                navbarUser.innerHTML = `
+                    Welcome, <span id="username"></span>!
+                    <button class="btn btn-outline-light ms-2" onclick="logout()">Logout</button>
+                `;
+            } else {
+                navbarUser.innerHTML = `
+                    <a href="/login" class="btn btn-outline-light">Login</a>
+                    <a href="/register" class="btn btn-outline-light ms-2">Register</a>
+                `;
+            }
+        }
+
+        // 更新留言框
+        function updateMessageForm() {
+            const messageForm = document.getElementById('messageForm');
+            if (token) {
+                messageForm.innerHTML = `
+                    <textarea class="form-control mb-2" id="wallMessage" rows="3" 
+                        placeholder="Write something on the wall..."></textarea>
+                    <button class="btn btn-primary" onclick="postWallMessage()">Post Message</button>
+                `;
+            } else {
+                messageForm.innerHTML = `
+                    <div class="alert alert-info">
+                        Please <a href="/login">login</a> to post messages.
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

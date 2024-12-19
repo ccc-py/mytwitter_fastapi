@@ -3,6 +3,20 @@ let currentUser = null;
 
 // 檢查用戶是否已登入
 function checkAuth() {
+    // 獲取當前頁面路徑
+    const path = window.location.pathname;
+    
+    // 如果是用戶個人頁面，允許未登入用戶訪問
+    if (path.startsWith('/users/profile/')) {
+        // if (token) {
+            fetchCurrentUser();
+            loadFriendRequests();
+            loadFriends();
+        // }
+        return;
+    }
+    
+    // 其他頁面需要登入
     if (!token) {
         window.location.href = '/login.html';
     } else {
@@ -68,7 +82,9 @@ async function loadTweets() {
             const tweetElement = document.createElement('div');
             tweetElement.className = 'tweet-box';
             tweetElement.innerHTML = `
-                <strong>@${tweet.author.username}</strong>
+                <div class="tweet-header">
+                    <a href="/users/profile/${tweet.author.username}" class="user-link">@${tweet.author.username}</a>
+                </div>
                 <div class="tweet-content">${tweet.content}</div>
                 <div class="tweet-footer">
                     ${new Date(tweet.created_at).toLocaleString()}
@@ -231,6 +247,182 @@ async function removeFriend(userId) {
 
         if (response.ok) {
             loadFriends();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 載入用戶個人資料
+async function loadUserProfile() {
+    const pathParts = window.location.pathname.split('/');
+    const username = pathParts[pathParts.length - 1];
+    
+    try {
+        // Get user info
+        const response = await fetch(`/api/users/by-username/${username}`);
+        if (!response.ok) {
+            window.location.href = '/';
+            return;
+        }
+        
+        const user = await response.json();
+        document.getElementById('profileUsername').textContent = `@${user.username}`;
+        document.getElementById('profileJoinDate').textContent = 
+            `Joined ${new Date(user.created_at).toLocaleDateString()}`;
+        
+        // Load wall messages
+        loadWallMessages(user.id);
+        
+        // Load user's tweets
+        loadUserTweets(user.id);
+        
+        // 只有在用戶已登入時才更新好友操作區域
+        // if (token) {
+            updateFriendActionArea(user);
+        /*
+        } else {
+            document.getElementById('friendActionArea').innerHTML = `
+                <div class="alert alert-info">
+                    <a href="/login">Login</a> to interact with ${user.username}
+                </div>
+            `;
+        }
+        */
+        // Store wall owner ID for posting messages
+        window.wallOwnerId = user.id;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 載入用戶的推文
+async function loadUserTweets(userId) {
+    try {
+        const response = await fetch(`/api/tweets/user/${userId}`);
+        const tweets = await response.json();
+        const tweetsContainer = document.getElementById('userTweets');
+        tweetsContainer.innerHTML = '';
+
+        tweets.forEach(tweet => {
+            const tweetElement = document.createElement('div');
+            tweetElement.className = 'tweet-box';
+            tweetElement.innerHTML = `
+                <div class="tweet-header">
+                    <a href="/users/profile/${tweet.author.username}" class="user-link">@${tweet.author.username}</a>
+                </div>
+                <div class="tweet-content">${tweet.content}</div>
+                <div class="tweet-footer">
+                    ${new Date(tweet.created_at).toLocaleString()}
+                    ${tweet.author.id === currentUser?.id ? 
+                        `<button class="btn btn-sm btn-danger float-end" onclick="deleteTweet(${tweet.id})">Delete</button>` 
+                        : ''}
+                </div>
+            `;
+            tweetsContainer.appendChild(tweetElement);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 載入留言板消息
+async function loadWallMessages(userId) {
+    try {
+        const response = await fetch(`/api/users/${userId}/wall`);
+        const messages = await response.json();
+        const messagesContainer = document.getElementById('wallMessages');
+        messagesContainer.innerHTML = '';
+
+        messages.forEach(message => {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'wall-message';
+            messageElement.innerHTML = `
+                <div class="message-header">
+                    <strong>@${message.author.username}</strong>
+                    <small class="text-muted">${new Date(message.created_at).toLocaleString()}</small>
+                </div>
+                <div class="message-content">${message.content}</div>
+                ${message.author.id === currentUser?.id || message.wall_owner.id === currentUser?.id ? 
+                    `<button class="btn btn-sm btn-danger float-end" onclick="deleteWallMessage(${message.id})">Delete</button>` 
+                    : ''}
+            `;
+            messagesContainer.appendChild(messageElement);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 發布留言板消息
+async function postWallMessage() {
+    const content = document.getElementById('wallMessage').value;
+    if (!content.trim()) return;
+
+    try {
+        const response = await fetch('/api/wall-messages/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                content: content,
+                wall_owner_id: window.wallOwnerId
+            })
+        });
+
+        if (response.ok) {
+            document.getElementById('wallMessage').value = '';
+            loadWallMessages(window.wallOwnerId);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 刪除留言板消息
+async function deleteWallMessage(messageId) {
+    try {
+        const response = await fetch(`/api/wall-messages/${messageId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            loadWallMessages(window.wallOwnerId);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 更新好友操作區域
+async function updateFriendActionArea(user) {
+    const actionArea = document.getElementById('friendActionArea');
+    if (user.id === currentUser?.id) {
+        actionArea.innerHTML = '<p class="text-muted">This is your profile</p>';
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/friends/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const friends = await response.json();
+        
+        if (friends.some(friend => friend.id === user.id)) {
+            actionArea.innerHTML = `
+                <button class="btn btn-danger" onclick="removeFriend(${user.id})">Remove Friend</button>
+            `;
+        } else {
+            actionArea.innerHTML = `
+                <button class="btn btn-primary" onclick="sendFriendRequest(${user.id})">Add Friend</button>
+            `;
         }
     } catch (error) {
         console.error('Error:', error);
