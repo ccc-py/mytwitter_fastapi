@@ -308,9 +308,6 @@ async function loadUserTweets(userId) {
             const tweetElement = document.createElement('div');
             tweetElement.className = 'tweet-box';
             tweetElement.innerHTML = `
-                <div class="tweet-header">
-                    <a href="/users/profile/${tweet.author.username}" class="user-link">@${tweet.author.username}</a>
-                </div>
                 <div class="tweet-content">${tweet.content}</div>
                 <div class="tweet-footer">
                     ${new Date(tweet.created_at).toLocaleString()}

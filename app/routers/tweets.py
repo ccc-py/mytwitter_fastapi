@@ -30,6 +30,11 @@ def read_tweet(tweet_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Tweet not found")
     return tweet
 
+@router.get("/tweets/user/{user_id}", response_model=List[schemas.Tweet])
+def read_user_tweets(user_id: int, db: Session = Depends(get_db)):
+    tweets = db.query(models.Tweet).filter(models.Tweet.author_id == user_id).order_by(models.Tweet.created_at.desc()).all()
+    return tweets
+
 @router.delete("/tweets/{tweet_id}")
 def delete_tweet(
     tweet_id: int,
