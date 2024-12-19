@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi import Request
 from app.database import engine
 from app.models import Base
-from app.routers import users, tweets, auth
+from app.routers import users, tweets, auth, friends
 
 app = FastAPI(title="Twitter Clone API")
 
@@ -32,6 +32,7 @@ Base.metadata.create_all(bind=engine)
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(tweets.router, prefix="/api")
+app.include_router(friends.router, prefix="/api")
 
 @app.get("/", response_class=HTMLResponse)
 async def root(request: Request):

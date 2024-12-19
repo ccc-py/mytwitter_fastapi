@@ -7,6 +7,8 @@ function checkAuth() {
         window.location.href = '/login.html';
     } else {
         fetchCurrentUser();
+        loadFriendRequests();
+        loadFriends();
     }
 }
 
@@ -72,7 +74,7 @@ async function loadTweets() {
                     ${new Date(tweet.created_at).toLocaleString()}
                     ${tweet.author.id === currentUser?.id ? 
                         `<button class="btn btn-sm btn-danger float-end" onclick="deleteTweet(${tweet.id})">Delete</button>` 
-                        : ''}
+                        : `<button class="btn btn-sm btn-primary float-end" onclick="sendFriendRequest(${tweet.author.id})">Add Friend</button>`}
                 </div>
             `;
             tweetsContainer.appendChild(tweetElement);
@@ -94,6 +96,141 @@ async function deleteTweet(tweetId) {
 
         if (response.ok) {
             loadTweets();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 發送好友請求
+async function sendFriendRequest(userId) {
+    try {
+        const response = await fetch('/api/friend-requests/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ receiver_id: userId })
+        });
+
+        if (response.ok) {
+            alert('Friend request sent!');
+        } else {
+            const error = await response.json();
+            alert(error.detail);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 載入好友請求
+async function loadFriendRequests() {
+    try {
+        const response = await fetch('/api/friend-requests/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const requests = await response.json();
+        const requestsContainer = document.getElementById('friendRequests');
+        if (!requestsContainer) return;
+        
+        requestsContainer.innerHTML = '';
+        requests.forEach(request => {
+            const requestElement = document.createElement('div');
+            requestElement.className = 'friend-request-box';
+            requestElement.innerHTML = `
+                <strong>@${request.username}</strong> wants to be your friend
+                <div class="btn-group float-end">
+                    <button class="btn btn-sm btn-success" onclick="acceptFriendRequest(${request.id})">Accept</button>
+                    <button class="btn btn-sm btn-danger" onclick="rejectFriendRequest(${request.id})">Reject</button>
+                </div>
+            `;
+            requestsContainer.appendChild(requestElement);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 接受好友請求
+async function acceptFriendRequest(userId) {
+    try {
+        const response = await fetch(`/api/friend-requests/${userId}/accept`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            loadFriendRequests();
+            loadFriends();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 拒絕好友請求
+async function rejectFriendRequest(userId) {
+    try {
+        const response = await fetch(`/api/friend-requests/${userId}/reject`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            loadFriendRequests();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 載入好友列表
+async function loadFriends() {
+    try {
+        const response = await fetch('/api/friends/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        const friends = await response.json();
+        const friendsContainer = document.getElementById('friends');
+        if (!friendsContainer) return;
+        
+        friendsContainer.innerHTML = '';
+        friends.forEach(friend => {
+            const friendElement = document.createElement('div');
+            friendElement.className = 'friend-box';
+            friendElement.innerHTML = `
+                <strong>@${friend.username}</strong>
+                <button class="btn btn-sm btn-danger float-end" onclick="removeFriend(${friend.id})">Remove</button>
+            `;
+            friendsContainer.appendChild(friendElement);
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// 移除好友
+async function removeFriend(userId) {
+    try {
+        const response = await fetch(`/api/friends/${userId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            loadFriends();
         }
     } catch (error) {
         console.error('Error:', error);

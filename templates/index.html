@@ -8,29 +8,54 @@
     <link href="/static/styles.css" rel="stylesheet">
 </head>
 <body onload="checkAuth(); loadTweets();">
-    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="/">Twitter Clone</a>
-            <div class="navbar-nav ms-auto">
-                <span class="nav-item nav-link" id="username"></span>
-                <a class="nav-link" href="#" onclick="logout()">Logout</a>
+            <div class="navbar-text">
+                Welcome, <span id="username"></span>!
+                <button class="btn btn-outline-light ms-2" onclick="logout()">Logout</button>
             </div>
         </div>
     </nav>
 
-    <div class="container main-container">
-        <div class="compose-tweet">
-            <div class="card">
-                <div class="card-body">
-                    <textarea id="tweetContent" class="form-control" rows="3" 
-                        placeholder="What's happening?"></textarea>
-                    <button onclick="postTweet()" class="btn btn-primary mt-2">Tweet</button>
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-md-8">
+                <!-- Tweet Form -->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <textarea id="tweetContent" class="form-control mb-2" rows="3" placeholder="What's happening?"></textarea>
+                        <button class="btn btn-primary" onclick="postTweet()">Tweet</button>
+                    </div>
+                </div>
+
+                <!-- Tweets List -->
+                <div id="tweets"></div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-md-4">
+                <!-- Friend Requests -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Friend Requests</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="friendRequests"></div>
+                    </div>
+                </div>
+
+                <!-- Friends List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Friends</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="friends"></div>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div id="tweets">
-            <!-- Tweets will be loaded here -->
         </div>
     </div>
 

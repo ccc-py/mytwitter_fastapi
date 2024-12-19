@@ -17,6 +17,14 @@ class User(UserBase):
     class Config:
         from_attributes = True
 
+class UserPublic(BaseModel):
+    id: int
+    username: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -38,3 +46,18 @@ class Tweet(TweetBase):
 
     class Config:
         from_attributes = True
+
+class FriendRequest(BaseModel):
+    sender_id: int
+    receiver_id: int
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class FriendRequestCreate(BaseModel):
+    receiver_id: int
+
+class FriendResponse(BaseModel):
+    message: str

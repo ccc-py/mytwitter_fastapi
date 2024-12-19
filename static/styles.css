@@ -43,7 +43,7 @@
 }
 
 body {
-    background-color: #f5f8fa;
+    background-color: #f8f9fa;
 }
 
 .error-message {
@@ -56,4 +56,65 @@ body {
     color: #28a745;
     margin-top: 5px;
     font-size: 0.9em;
+}
+
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    margin-bottom: 1rem;
+}
+
+.tweet-box {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.tweet-content {
+    margin: 0.5rem 0;
+}
+
+.tweet-footer {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.friend-request-box {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.friend-request-box:last-child {
+    border-bottom: none;
+}
+
+.friend-box {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.friend-box:last-child {
+    border-bottom: none;
+}
+
+.btn-group {
+    gap: 0.5rem;
+}
+
+textarea {
+    resize: none;
+}
+
+#username {
+    font-weight: bold;
+    color: white;
 }
