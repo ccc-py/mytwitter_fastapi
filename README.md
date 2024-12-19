@@ -32,8 +32,8 @@ A modern social platform built with FastAPI, SQLAlchemy, and modern frontend tec
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/sayit.git
-cd sayit
+git clone https://github.com/ccc-py/sayit_fastapi.git
+cd sayit_fastapi
 ```
 
 2. Create a virtual environment and activate it:
